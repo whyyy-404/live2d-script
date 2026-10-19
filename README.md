@@ -2,76 +2,65 @@
 
 给 [脚本猫](https://scriptcat.org/) / [篡改猴](https://www.tampermonkey.net/) 用的看板娘脚本。
 
-> **状态：尚未开始编写。**
->
-> 本仓库先占位，等库（[live2d-waifu](https://github.com/whyyy-404/live2d-waifu)）稳定后再写。
+看板娘本体来自 [live2d-waifu](https://github.com/whyyy-404/live2d-waifu) 库，
+模型数据来自 [live2d-models](https://github.com/whyyy-404/live2d-models)。
+**本仓库不复制库的任何代码**，只通过 `@require` 引用。
 
 ---
 
-## 规划
+## 两个版本
 
-脚本会复用库的资源，而不是把样式和逻辑再抄一遍：
+| 脚本 | 说明 | 大小 |
+|---|---|---|
+| **live2d-lite.user.js** | 只引用库，没有任何增强功能 | ~5 KB |
+| **live2d-waifu.user.js** | 完整版：配置面板 / 健康提醒 / 待办 / 天气 / 自定义台词 | 开发中 |
+
+两个脚本**互相独立**，装哪个用哪个。
+
+### 轻量版
+
+把库加载起来，剩下全部交给库：
+
+- 换角色 / 换皮肤
+- 拖拽吸附 + 位置记忆
+- 拍照
+- 悬停隐藏
+- 工具栏 8 个按钮（库默认）
+
+### 完整版
+
+在库的基础上增加：
+
+- **配置面板**（图形化设置，GM 存储跨网站同步）
+- **健康提醒**（喝水 / 休息 / 坐姿 / 睡觉）
+- **待办提醒**
+- **天气查询**
+- **自定义台词**（支持 `{nickname}`）
+- 工具栏 10 个按钮（首页 / 一言 / 天气 / 换角色 / 换皮肤 / 拍照 / 待办 / 设置 / 赞赏 / 关闭）
+
+---
+
+## 安装
+
+### 脚本猫
+
+打开脚本猫管理面板 → 新建脚本 → 粘贴对应脚本内容 → `Ctrl + S`
+
+### 篡改猴
+
+把 `.user.js` 文件拖到浏览器窗口，或在管理面板里新建后粘贴。
+
+---
+
+## 目录
 
 ```
 live2d-script/
-└── live2d-waifu.user.js        用户脚本
-        ↓ 引用
-   live2d-waifu/assets/         库：引擎 / 逻辑 / 样式 / 静态 API
-   live2d-models/               模型数据
+├── live2d-lite.user.js    轻量版
+├── live2d-waifu.user.js   完整版
+├── README.md
+└── LICENSE
 ```
-
-好处：**改库 → 脚本用户和博客用户同时受益**，不用改两遍。
-
----
-
-## 计划中的功能
-
-| 功能 | 说明 |
-|---|---|
-| 看板娘本体 | 直接引用库，不重复实现 |
-| 自定义台词 | 配置面板里改，存 GM 存储 |
-| 健康提醒 | 喝水 / 休息 / 坐姿 / 睡觉 |
-| 待办提醒 | 指定时间或按间隔 |
-| 天气查询 | 按省市查询 |
-| 每日一言 | 一键获取 |
-| 配置面板 | 图形化设置，**跨网站同步**（用库的 storage 钩子换成 GM 存储） |
-
----
-
-### 为什么面板放在脚本里，而不是库里
-
-库的使用者是**站长**——改一行配置就行，不需要给访客一个面板。
-
-脚本的使用者是**每个访客**——他们改不了代码，只能点鼠标，而且配置要跨网站保留。
-这需要 `GM_setValue` 这类脚本管理器能力，库本身没有。
-
-所以职责是分开的：
-
-```
-库   →  43 个配置项，改代码即可
-脚本 →  配置面板 + GM 存储持久化
-```
-
-面板的 UI 会尽量和库的视觉保持一致，但**不会把面板塞进库**——
-否则每个引用库的站长都会被强加一个用不上的设置按钮。
-
----
-
-## 与库的关系
-
-本仓库**不复制**库的任何代码。脚本启动时按顺序加载：
-
-```
-1. jQuery                                  库依赖，见下
-2. live2d-waifu/assets/live2d.js            引擎
-3. live2d-waifu/assets/live2d-static-api.js 静态模型 API
-4. live2d-waifu/assets/waifu-tips.js        控制逻辑
-5. live2d-waifu/assets/waifu.css            样式
-```
-
-模型数据来自 [live2d-models](https://github.com/whyyy-404/live2d-models) 的 `models.json`。
-
-**改库 = 脚本自动受益**，不用改两遍。
 
 ---
 
@@ -79,11 +68,22 @@ live2d-script/
 
 | 依赖 | 说明 |
 |---|---|
-| **jQuery 3.3.1** | 库的上游（fghrsh 实现）与引擎内部都用 jQuery，脚本里同样需要 |
+| **jQuery 3.3.1** | 库的上游实现与引擎内部都依赖它 |
 | **element-ui icons** | 工具栏图标字体 |
+| **live2d-waifu** | 看板娘库（`@require`，跟随 `@main`） |
+| **live2d-models** | 模型数据（运行时 fetch `models.json`） |
 | 脚本管理器 | 脚本猫 / Tampermonkey，提供 `GM_setValue` 等能力 |
 
-详见库的 [关于 jQuery](https://github.com/whyyy-404/live2d-waifu#关于-jquery) 说明。
+详见库的 [关于 jQuery](https://github.com/whyyy-404/live2d-waifu#关于-jquery)。
+
+---
+
+## 关于版本号
+
+脚本里的 `@require` 用的是 `@main`，即永远跟随库的最新提交。
+
+好处是改库之后脚本自动受益，不用每次改版本号。
+代价是 jsDelivr 对分支引用有最长约 12 小时的缓存。
 
 ---
 
@@ -97,11 +97,9 @@ live2d-script/
 
 **参考项目**
 
-本脚本的增强功能（健康提醒、待办、天气、配置面板）在设计时参考了这些项目：
-
 | 项目 | 借鉴了什么 |
 |---|---|
-| [stevenjoezhang/live2d-widget](https://github.com/stevenjoezhang/live2d-widget) | 工具栏按钮的模块化组织方式、按需加载 |
+| [stevenjoezhang/live2d-widget](https://github.com/stevenjoezhang/live2d-widget) | 工具栏按钮的模块化组织、按需加载 |
 | [summerscar/live2dDemo](https://github.com/summerscar/live2dDemo) | 多模型切换流程 |
 
 **CDN 与接口服务**
