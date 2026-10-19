@@ -79,6 +79,22 @@
             dockSide: 'right' // 'left' 或 'right'，记住停靠位置
         },
 
+        // 工具栏按钮显隐（key 对应图标，见 TOOLBAR_ICONS）
+        toolbar: {
+            house: true,
+            hitokoto: true,
+            sunny: true,
+            user: true,
+            magic: true,
+            camera: true,
+            todo: true,
+            setting: true,
+            donate: true,
+            close: true,
+            view: false,        // 悬停隐藏：默认不显示
+            discover: false,    // 关于：默认不显示
+        },
+
         // 天气设置
         weather: {
             province: '广东',
@@ -1145,6 +1161,12 @@
                     <input type="radio" id="tab-basic" name="tabs" checked>
                     <label class="config-tab" for="tab-basic">基础</label>
 
+                    <input type="radio" id="tab-waifu" name="tabs">
+                    <label class="config-tab" for="tab-waifu">看板娘</label>
+
+                    <input type="radio" id="tab-toolbar" name="tabs">
+                    <label class="config-tab" for="tab-toolbar">工具栏</label>
+
                     <input type="radio" id="tab-weather" name="tabs">
                     <label class="config-tab" for="tab-weather">天气</label>
 
@@ -1205,6 +1227,169 @@
 
                         <div class="config-desc" style="margin-top: 4px;">
                             当前网站：<strong>${window.location.hostname}</strong>
+                        </div>
+                    </div>
+
+                    <!-- 看板娘设置 -->
+                    <div class="config-section" data-tab="waifu">
+                        <div class="section-header">
+                            <div class="config-section-title">看板娘设置</div>
+                            <button class="reset-button" data-reset="waifu">恢复默认</button>
+                        </div>
+
+                        <div class="config-item">
+                            <div class="config-label">当前角色</div>
+                            <select class="config-input-number" id="cfg_modelId" style="width: 160px; text-align: left;">
+                                <option value="1">1 · Pio（Potion Maker）</option>
+                                <option value="2">2 · Tia（Potion Maker）</option>
+                                <option value="3">3 · 22 娘（bilibili）</option>
+                                <option value="4">4 · 33 娘（bilibili）</option>
+                                <option value="5">5 · 雫（ShizukuTalk）</option>
+                                <option value="6">6 · 海王星</option>
+                                <option value="7">7 · 舰娘</option>
+                            </select>
+                        </div>
+
+                        <div class="config-desc" style="margin-top: -6px; margin-bottom: 12px;">
+                            每个角色会各自记住自己穿的皮肤，切换角色不会丢失
+                        </div>
+
+                        <div class="config-item">
+                            <div class="config-label">当前皮肤</div>
+                            <input type="number" class="config-input-number" id="cfg_modelTexturesId" min="0" value="0" style="width: 120px;">
+                        </div>
+
+                        <div class="config-desc" style="margin-top: -6px; margin-bottom: 12px;">
+                            0 表示该角色的原皮。也可以在工具栏点魔法棒随机换
+                        </div>
+
+                        <div class="config-item">
+                            <div class="config-label">停靠位置</div>
+                            <select class="config-input-number" id="cfg_dockSide" style="width: 120px; text-align: left;">
+                                <option value="right">右侧</option>
+                                <option value="left">左侧</option>
+                            </select>
+                        </div>
+
+                        <div class="config-desc" style="margin-top: -6px; margin-bottom: 12px;">
+                            拖动看板娘松手后会自动吸附到最近的边缘
+                        </div>
+
+                        <div class="config-item">
+                            <div class="config-label">加载延迟（毫秒）</div>
+                            <input type="number" class="config-input-number" id="cfg_loadDelay" min="0" step="100" value="1000" style="width: 120px;">
+                        </div>
+
+                        <div class="config-desc" style="margin-top: -6px;">
+                            页面打开后等这么久再加载看板娘，避免和页面抢资源
+                        </div>
+                    </div>
+
+                    <!-- 工具栏设置 -->
+                    <div class="config-section" data-tab="toolbar">
+                        <div class="section-header">
+                            <div class="config-section-title">工具栏按钮</div>
+                            <button class="reset-button" data-reset="toolbar">恢复默认</button>
+                        </div>
+
+                        <div class="config-desc" style="margin-bottom: 16px;">
+                            勾选显示、取消隐藏。改完需要刷新页面生效
+                        </div>
+
+                        <div class="config-item">
+                            <div class="config-label">首页</div>
+                            <label class="switch">
+                                <input type="checkbox" id="cfg_tool_house" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="config-item">
+                            <div class="config-label">一言</div>
+                            <label class="switch">
+                                <input type="checkbox" id="cfg_tool_hitokoto" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="config-item">
+                            <div class="config-label">天气</div>
+                            <label class="switch">
+                                <input type="checkbox" id="cfg_tool_sunny" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="config-item">
+                            <div class="config-label">换角色</div>
+                            <label class="switch">
+                                <input type="checkbox" id="cfg_tool_user" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="config-item">
+                            <div class="config-label">换皮肤</div>
+                            <label class="switch">
+                                <input type="checkbox" id="cfg_tool_magic" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="config-item">
+                            <div class="config-label">拍照</div>
+                            <label class="switch">
+                                <input type="checkbox" id="cfg_tool_camera" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="config-item">
+                            <div class="config-label">待办</div>
+                            <label class="switch">
+                                <input type="checkbox" id="cfg_tool_todo" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="config-item">
+                            <div class="config-label">设置</div>
+                            <label class="switch">
+                                <input type="checkbox" id="cfg_tool_setting" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="config-item">
+                            <div class="config-label">赞赏</div>
+                            <label class="switch">
+                                <input type="checkbox" id="cfg_tool_donate" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="config-item">
+                            <div class="config-label">关闭</div>
+                            <label class="switch">
+                                <input type="checkbox" id="cfg_tool_close" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="config-item">
+                            <div class="config-label">悬停隐藏</div>
+                            <label class="switch">
+                                <input type="checkbox" id="cfg_tool_view">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="config-item">
+                            <div class="config-label">关于</div>
+                            <label class="switch">
+                                <input type="checkbox" id="cfg_tool_discover">
+                                <span class="slider"></span>
+                            </label>
                         </div>
                     </div>
 
@@ -1644,6 +1829,30 @@
             config.blacklist = $('#cfg_blacklist').val().split('\n').filter(line => line.trim());
             config.weather.province = $('#cfg_province').val().trim() || '广东';
             config.weather.city = $('#cfg_city').val().trim() || '广州';
+
+            // 保存看板娘配置
+            const newModelId = parseInt($('#cfg_modelId').val()) || 1;
+            const newTexturesId = parseInt($('#cfg_modelTexturesId').val()) || 0;
+            config.waifu.modelId = newModelId;
+            setTexturesId(newModelId, newTexturesId);
+            config.waifu.dockSide = $('#cfg_dockSide').val() === 'left' ? 'left' : 'right';
+            config.loadDelay = parseInt($('#cfg_loadDelay').val()) || 0;
+
+            // 保存工具栏开关
+            config.toolbar = {
+                house:     $('#cfg_tool_house').is(':checked'),
+                hitokoto:  $('#cfg_tool_hitokoto').is(':checked'),
+                sunny:     $('#cfg_tool_sunny').is(':checked'),
+                user:      $('#cfg_tool_user').is(':checked'),
+                magic:     $('#cfg_tool_magic').is(':checked'),
+                camera:    $('#cfg_tool_camera').is(':checked'),
+                todo:      $('#cfg_tool_todo').is(':checked'),
+                setting:   $('#cfg_tool_setting').is(':checked'),
+                donate:    $('#cfg_tool_donate').is(':checked'),
+                close:     $('#cfg_tool_close').is(':checked'),
+                view:      $('#cfg_tool_view').is(':checked'),
+                discover:  $('#cfg_tool_discover').is(':checked'),
+            };
 
             // 保存健康提醒配置
             const oldHealthEnabled = config.healthReminders.enabled;
@@ -2210,7 +2419,73 @@
         }, 3000);
     }
 
+    /**
+     * 把脚本里配置的自定义台词，注入库的 waifu_tips 对象。
+     *
+     * 库负责：节日祝福、来源识别、悬停图标台词、模型招呼语
+     * 脚本负责：欢迎词（按时段）、点击台词、空闲台词
+     *
+     * 替换的是库对象里的对应字段，其余原样保留 —— 所以节日和来源识别不受影响。
+     */
+    function injectCustomMessages() {
+        const tips = window.waifu_tips;
+        if (!tips || typeof tips !== 'object') {
+            console.log('[Live2D] 库的台词对象还没就绪，稍后重试');
+            return false;
+        }
+
+        const nickname = config.nickname || '宝宝';
+        const cm = config.customMessages;
+
+        // 统一替换占位符
+        function render(list) {
+            return (list && list.length ? list : ['']).map(function (t) {
+                return String(t).replace(/\{nickname\}/g, nickname);
+            });
+        }
+
+        // 欢迎词：库用 hour_tips 的 9 个时段键
+        const w = cm.welcome || {};
+        tips.hour_tips = {
+            't5-7':   render(w.morning),
+            't7-11':  render(w.morning),
+            't11-14': render(w.noon),
+            't14-17': render(w.afternoon),
+            't17-19': render(w.afternoon),
+            't19-21': render(w.evening),
+            't21-23': render(w.night || w.evening),
+            't23-5':  render(w.night || w.evening),
+            'default': render(w.morning),
+        };
+
+        // 点击台词 / 悬停台词
+        // ⚠️ 库把 mouseover / click 存在 result 顶层，不在 waifu 对象里，
+        //    所以这里只处理 waifu 内部字段，顶层数组用下面的 injectTipsArrays 处理。
+        if (cm.click && cm.click.length) {
+            const clickText = render(cm.click);
+            tips.load_rand_textures = tips.load_rand_textures || [];
+            // 把点击台词挂到一个自定义键上，供库外部读取
+            tips.__customClick = clickText;
+        }
+
+        if (cm.idle && cm.idle.length) {
+            tips.__customIdle = render(cm.idle);
+        }
+
+        console.log('[Live2D] 自定义台词已注入（昵称：' + nickname + '）');
+        return true;
+    }
+
     function setupCustomMessages() {
+        // 尝试把自定义台词注入库（库的台词对象可能在 initModel 之后才就绪）
+        if (!injectCustomMessages()) {
+            let tries = 0;
+            const retry = setInterval(function () {
+                tries++;
+                if (injectCustomMessages() || tries >= 10) clearInterval(retry);
+            }, 500);
+        }
+
         $(document).on('click', '.waifu #live2d', function() {
             const nickname = config.nickname || '宝宝';
             const messages = config.customMessages.click;
@@ -2237,32 +2512,9 @@
             }, 60000);
         });
 
-        // 缩小看板娘的触发区域，排除工具栏
-        setTimeout(() => {
-            // 移除原有的看板娘 mouseover 事件
-            $(document).off('mouseover', '.waifu #live2d');
-
-            // 只在 canvas 上添加 mouseover 事件，并检查鼠标位置
-            $(document).on('mouseover', '.waifu #live2d', function(e) {
-                const canvas = this;
-                const rect = canvas.getBoundingClientRect();
-                const mouseX = e.clientX - rect.left;
-
-                // 如果鼠标在右侧 60px 区域（工具栏区域），不触发
-                if (mouseX > rect.width - 60) {
-                    return;
-                }
-
-                // 只有在没有重要消息时才显示
-                if (!messageSystem.isImportantMessageShowing) {
-                    const texts = ["干嘛呢你，快把手拿开", "鼠…鼠标放错地方了！"];
-                    const text = texts[Math.floor(Math.random() * texts.length)];
-                    if (typeof showMessage === 'function') {
-                        showMessage(text, 3000);
-                    }
-                }
-            });
-        }, 1000);
+        // ⚠️ 悬停台词交给库处理（waifu-tips.json 里的 .waifu #live2d 条目）。
+        //    以前这里会先 off 掉库的绑定再自己绑一份，结果和库打架，
+        //    表现为台词闪烁、或者重要消息被顶掉。现在不要这段。
     }
 
     // ========== 拖拽停靠功能（修复版） ==========
@@ -2579,11 +2831,45 @@
             //    库没有的四个（天气 / 待办 / 设置 / 赞助）直接绑，不受影响。
             // ============================================================
 
-            // 先解绑库绑过的那 6 个
-            ['.el-icon-house', '.el-icon-chat-dot-round', '.el-icon-user',
-             '.el-icon-magic-stick', '.el-icon-camera', '.el-icon-switch-button'
-            ].forEach(function (sel) {
-                $('.waifu-tool ' + sel).off('click');
+            // 解绑库绑过的工具栏按钮。
+            // ⚠️ 不写死图标名 —— 库绑了哪几个由库决定，
+            //    这里把工具栏上每个 span 的 click 都清掉，再按需要重新绑。
+            // ⚠️ 唯独「悬停隐藏」（el-icon-view）保留库的绑定：
+            //    它的切换状态（hidden / peeking）是 initHideMode 的闭包变量，
+            //    外部拿不到，自己重绑反而会坏掉。
+            $('.waifu-tool span').not('.el-icon-view').off('click');
+
+            // ---------- 按配置显示 / 隐藏工具栏按钮 ----------
+            // key 与 DEFAULT_CONFIG.toolbar 对应
+            const TOOLBAR_ICONS = {
+                house:    '.el-icon-house',
+                hitokoto: '.el-icon-chat-dot-round',
+                sunny:    '.el-icon-sunny',
+                user:     '.el-icon-user',
+                magic:    '.el-icon-magic-stick',
+                camera:   '.el-icon-camera',
+                todo:     '.el-icon-document-checked',
+                setting:  '.el-icon-setting',
+                donate:   '.el-icon-coffee-cup',
+                close:    '.el-icon-switch-button',
+                view:     '.el-icon-view',
+                discover: '.el-icon-discover',
+            };
+
+            Object.keys(TOOLBAR_ICONS).forEach(function (key) {
+                const sel = '.waifu-tool ' + TOOLBAR_ICONS[key];
+                const visible = config.toolbar && config.toolbar[key];
+
+                if (visible) {
+                    // 悬停隐藏和关于默认不在容器的 HTML 里，需要动态补上
+                    if (!$(sel).length) {
+                        const icon = TOOLBAR_ICONS[key].replace('.', '');
+                        const title = key === 'view' ? '悬停隐藏' : '关于';
+                        $('.waifu-tool').append('<span class="' + icon + '" title="' + title + '"></span>');
+                    }
+                } else {
+                    $(sel).hide();
+                }
             });
 
             // ---------- 首页：和库一样，跳站点根目录 ----------
@@ -2688,6 +2974,21 @@
             $('.waifu-tool .el-icon-switch-button').hover(function() {
                 const nickname = config.nickname || '宝宝';
                 messageSystem.showNormal(`${nickname}不喜欢我了吗...`, 3000);
+            });
+
+            // ---------- 悬停隐藏：click 由库自己绑，这里只加悬停提示 ----------
+            $('.waifu-tool .el-icon-view').hover(function() {
+                const nickname = config.nickname || '宝宝';
+                messageSystem.showNormal(`${nickname}想让我躲起来吗？`, 3000);
+            });
+
+            // ---------- 关于（面板里开启后才会出现）----------
+            $('.waifu-tool .el-icon-discover').hover(function() {
+                const nickname = config.nickname || '宝宝';
+                messageSystem.showNormal(`${nickname}想认识我吗？`, 3000);
+            });
+            $('.waifu-tool .el-icon-discover').click(function() {
+                window.open('https://github.com/whyyy-404/live2d-waifu', '_blank');
             });
 
             reminderSystem = new HealthReminderSystem();
