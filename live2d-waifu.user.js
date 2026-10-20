@@ -1497,6 +1497,19 @@
         $('body').append(panel);
         $('#live2dConfigPanel').fadeIn(300);
 
+        // 用库记录的当前角色 / 皮肤填充控件 —— 库是这两个值的唯一来源
+        (function fillWaifuState() {
+            const curModel = parseInt(window.storageGet('modelId'), 10);
+            if (!isNaN(curModel) && curModel > 0) {
+                config.waifu.modelId = curModel;
+                $('#cfg_modelId').val(curModel);
+            }
+            const curTex = getTexturesId(config.waifu.modelId);
+            $('#cfg_modelTexturesId').val(curTex);
+            $('#cfg_dockSide').val(config.waifu.dockSide === 'left' ? 'left' : 'right');
+            $('#cfg_loadDelay').val(config.loadDelay);
+        })();
+
         // 更新待办徽章
         updateTodoBadge();
 
@@ -2065,19 +2078,13 @@
     }
 
     // ========== 模型切换 ==========
-    /**
-     * 换角色。切换逻辑在库的 loadOtherModel 里，
-     * 这里通过它的回调把新角色同步进 config，供面板显示。
-     */
+    /** 换角色。切换与皮肤恢复都由库负责。 */
     function loadOtherModel() {
         if (typeof window.loadOtherModel !== 'function') {
             console.error('[Live2D] 库的 loadOtherModel 不可用');
             return;
         }
-        window.loadOtherModel(function (newId) {
-            config.waifu.modelId = newId;
-            saveConfig();
-        });
+        window.loadOtherModel();
     }
 
     /**
