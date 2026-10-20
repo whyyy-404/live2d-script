@@ -182,53 +182,31 @@
         console.log('[Live2D] 配置已保存');
     }
 
-    /* ---- 皮肤记忆：每个角色各自一份 ---- */
+    /* ---- 皮肤记忆：直接用库的接口，不重复实现 ---- */
 
     /**
      * 读取某个角色记住的皮肤编号。
-     * @param {number} modelId 角色 id
-     * @returns {number} 皮肤编号，没记过则 0（原皮）
+     * 库已经实现了「按角色分开存」（storageGetModelTextures），这里只做兜底：
+     * 万一库没加载成功，退回到配置里的值。
      */
     function getTexturesId(modelId) {
+        if (typeof window.storageGetModelTextures === 'function') {
+            return window.storageGetModelTextures(modelId);
+        }
         const bag = config.waifu.textures || {};
         const v = parseInt(bag[String(modelId)], 10);
         return isNaN(v) || v < 0 ? 0 : v;
     }
 
-    /**
-     * 记住某个角色当前穿的皮肤。
-     * @param {number} modelId  角色 id
-     * @param {number} texturesId 皮肤编号
-     */
+    /** 记住某个角色当前穿的皮肤 */
     function setTexturesId(modelId, texturesId) {
+        if (typeof window.storageSetModelTextures === 'function') {
+            window.storageSetModelTextures(modelId, texturesId);
+            return;
+        }
         if (!config.waifu.textures) config.waifu.textures = {};
         config.waifu.textures[String(modelId)] = parseInt(texturesId, 10) || 0;
     }
-
-    /**
-     * 旧版数据迁移。
-     *
-     * 以前的配置只有 waifu.modelTexturesId（单一值），换角色时会被覆盖。
-     * 现在改成 waifu.textures = { 角色id: 皮肤 } 。
-     *
-     * 迁移策略：把旧的那个单一值，认定为「当前这个角色」的皮肤。
-     * 其他角色的历史无法恢复（因为早就被覆盖掉了），只能从原皮开始。
-     */
-    (function migrateTextures() {
-        const w = config.waifu;
-        if (w.modelTexturesId !== undefined) {
-            const old = parseInt(w.modelTexturesId, 10) || 0;
-            if (!w.textures) w.textures = {};
-            // 只有当前角色没记过时才写入，避免覆盖新数据
-            if (w.textures[String(w.modelId)] === undefined && old > 0) {
-                w.textures[String(w.modelId)] = old;
-                console.log('[Live2D] 已迁移旧皮肤记录: 角色 ' + w.modelId + ' → 第 ' + old + ' 套');
-            }
-            delete w.modelTexturesId;
-            saveConfig();
-        }
-        if (!w.textures || typeof w.textures !== 'object') w.textures = {};
-    })();
 
     function shouldLoad() {
         if (!config.enabled) return false;
@@ -2496,21 +2474,42 @@
             }
         });
 
-        let idleTimer;
-        $(document).on('mousemove keydown', function() {
-            clearTimeout(idleTimer);
-            idleTimer = setTimeout(() => {
-                if (Math.random() < 0.3) {
-                    const nickname = config.nickname || '宝宝';
-                    const messages = config.customMessages.idle;
-                    let message = messages[Math.floor(Math.random() * messages.length)];
-                    message = message.replace(/\{nickname\}/g, nickname);
-                    if (typeof showMessage === 'function') {
-                        showMessage(message, 4000);
-                    }
-                }
-            }, 60000);
-        });
+        // 空闲台词：用户 60 秒没动静后，有 30% 概率说一句
+        // ⚠️ 用时间戳而不是每次 mousemove 都 clearTimeout + setTimeout ——
+        //    后者在拖拽时每帧都创建定时器，会和库的 pointermove 抢主线程，明显卡顿。
+        let lastActive = Date.now();
+        let idleFired = false;
+
+        document.addEventListener('mousemove', function () {
+            lastActive = Date.now();
+            idleFired = false;
+        }, { passive: true });
+
+        document.addEventListener('keydown', function () {
+            lastActive = Date.now();
+            idleFired = false;
+        }, { passive: true });
+
+        setInterval(function () {
+            if (idleFired) return;
+            if (document.visibilityState !== 'visible') return;
+            if (Date.now() - lastActive < 60000) return;
+
+            idleFired = true;
+            if (Math.random() >= 0.3) return;
+
+            const tips = window.waifu_tips;
+            const list = (tips && tips.__customIdle) || config.customMessages.idle;
+            if (!list || !list.length) return;
+
+            const nickname = config.nickname || '宝宝';
+            let message = list[Math.floor(Math.random() * list.length)];
+            message = message.replace(/\{nickname\}/g, nickname);
+
+            if (typeof showMessage === 'function') {
+                showMessage(message, 4000);
+            }
+        }, 10000);
 
         // ⚠️ 悬停台词交给库处理（waifu-tips.json 里的 .waifu #live2d 条目）。
         //    以前这里会先 off 掉库的绑定再自己绑一份，结果和库打架，
