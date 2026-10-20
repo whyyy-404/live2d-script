@@ -239,14 +239,8 @@
     document.head.appendChild(elementUILink);
 
     // ========== 样式 ==========
-    // ========== 样式 ==========
-    // ⚠️ 看板娘本身的样式（.waifu / .waifu-tips / .waifu-tool）由库提供（waifu.css），
-    //    这里不再重写 —— 重复定义会和库冲突，尤其是 transform：
-    //    库的拖拽用 transform: translate3d()，如果这里也写 transform: translateY(3px)，
-    //    两者会互相覆盖，拖拽明显卡顿。
-    //    这里只保留库没有的东西：加载动画、面板、赞赏弹窗。
+    // 看板娘样式全部来自库，这里只放库没有的：加载动画、配置面板、赞赏弹窗。
     GM_addStyle(`
-        /* 显式加载库的样式，确保看板娘外观来自库 */
         @import url("https://cdn.jsdelivr.net/gh/whyyy-404/live2d-waifu@main/assets/waifu.css");
 
         /* 加载动画 */
@@ -2116,101 +2110,41 @@
     }
 
     // ========== Live2D 模型切换功能 ==========
+    /**
+     * 换角色。
+     *
+     * 真正的切换逻辑在库的 loadOtherModel 里（请求静态 API、恢复该角色的皮肤）。
+     * 这里只做一件库不做的事：把新角色同步进 config，让面板能显示当前是哪个。
+     */
     function loadOtherModel() {
-        const modelId = config.waifu.modelId;
-        const modelRandMode = 'switch'; // 可选 'rand'(随机) 或 'switch'(顺序)
-
-        if (typeof showMessage === 'function') {
-            showMessage('正在切换看板娘...', 2000);
+        if (typeof window.loadOtherModel !== 'function') {
+            console.error('[Live2D] 库的 loadOtherModel 不可用');
+            return;
         }
 
-        $.ajax({
-            cache: modelRandMode === 'switch',
-            url: `${MODEL_API}/${modelRandMode}/?id=${modelId}`,
-            dataType: "json",
-            success: function(result) {
-                if (result && result.model) {
-                    const newModelId = result.model.id;
-                    const message = result.model.message || '新的看板娘来啦~';
+        window.loadOtherModel();
 
-                    // 切到这个角色【上次穿的皮肤】，没记录过才用原皮
-                    const restoredTexturesId = getTexturesId(newModelId);
-
-                    // 保存到配置中，实现跨网站同步
-                    config.waifu.modelId = newModelId;
-                    saveConfig();
-                    console.log('[Live2D] 模型已切换并保存:', newModelId + '-' + restoredTexturesId);
-
-                    if (typeof loadModel === 'function') {
-                        loadModel(newModelId, restoredTexturesId);
-                    } else if (typeof loadlive2d === 'function') {
-                        // 同时保存到localStorage以兼容Live2D库
-                        localStorage.setItem('modelId', newModelId);
-                        localStorage.setItem('modelTexturesId', restoredTexturesId);
-                        loadlive2d('live2d', `${MODEL_API}/get/?id=${newModelId}-${restoredTexturesId}`);
-                    }
-
-                    if (typeof showMessage === 'function') {
-                        showMessage(message, 3000, true);
-                    }
-                }
-            },
-            error: function() {
-                if (typeof showMessage === 'function') {
-                    showMessage('切换失败了...', 3000);
-                }
+        // 延迟一下再同步 —— 库的 ajax 回调里才会更新 modelId，
+        // 这里读回库记录的最新值。
+        setTimeout(function () {
+            const cur = parseInt(window.storageGet('modelId'), 10);
+            if (!isNaN(cur) && cur > 0 && cur !== config.waifu.modelId) {
+                config.waifu.modelId = cur;
+                saveConfig();
             }
-        });
+        }, 800);
     }
 
+    /**
+     * 换皮肤。
+     * 切换与皮肤记忆都由库负责（loadRandTextures + storageSetModelTextures）。
+     */
     function loadRandTextures() {
-        const modelId = config.waifu.modelId;
-        // 读这个角色【自己】记住的皮肤，而不是全局单一值
-        const modelTexturesId = getTexturesId(modelId);
-        const modelTexturesRandMode = 'rand'; // 可选 'rand'(随机) 或 'switch'(顺序)
-
-        if (typeof showMessage === 'function') {
-            showMessage('正在换装中...', 2000);
+        if (typeof window.loadRandTextures !== 'function') {
+            console.error('[Live2D] 库的 loadRandTextures 不可用');
+            return;
         }
-
-        $.ajax({
-            cache: modelTexturesRandMode === 'switch',
-            url: `${MODEL_API}/${modelTexturesRandMode}_textures/?id=${modelId}-${modelTexturesId}`,
-            dataType: "json",
-            success: function(result) {
-                if (result && result.textures) {
-                    const newTexturesId = result.textures.id;
-
-                    if (newTexturesId === 1 && (modelTexturesId === 1 || modelTexturesId === 0)) {
-                        if (typeof showMessage === 'function') {
-                            showMessage('我还没有其他衣服呢', 3000, true);
-                        }
-                    } else {
-                        if (typeof showMessage === 'function') {
-                            showMessage('我的新衣服好看嘛', 3000, true);
-                        }
-                    }
-
-                    // 只更新【这个角色】的皮肤记录，别的角色不受影响
-                    setTexturesId(modelId, newTexturesId);
-                    saveConfig();
-                    console.log('[Live2D] 材质已切换并保存: 角色 ' + modelId + ' → 第 ' + newTexturesId + ' 套');
-
-                    if (typeof loadModel === 'function') {
-                        loadModel(modelId, newTexturesId);
-                    } else if (typeof loadlive2d === 'function') {
-                        // 同时保存到localStorage以兼容Live2D库
-                        localStorage.setItem('modelTexturesId', newTexturesId);
-                        loadlive2d('live2d', `${MODEL_API}/get/?id=${modelId}-${newTexturesId}`);
-                    }
-                }
-            },
-            error: function() {
-                if (typeof showMessage === 'function') {
-                    showMessage('换装失败了...', 3000);
-                }
-            }
-        });
+        window.loadRandTextures();
     }
 
     // ========== 天气功能 ==========
@@ -2604,29 +2538,11 @@
             setupCustomMessages();
 
             // ========== 工具栏按钮事件绑定 ==========
-
-            // 主页面按钮
-            // ============================================================
-            // 工具栏事件
-            // ------------------------------------------------------------
-            // ⚠️ 库（waifu-tips.js）已经给这几个按钮绑过 click：
-            //      首页 / 一言 / 换角色 / 换皮肤 / 拍照 / 关闭
-            //    如果这里再绑一次，一次点击会执行两遍（比如换角色直接跳两个）。
-            //
-            //    所以先解绑库的那几个，再由本脚本按需要的逻辑重新绑定。
-            //    库没有的四个（天气 / 待办 / 设置 / 赞助）直接绑，不受影响。
-            // ============================================================
-
-            // 解绑库绑过的工具栏按钮。
-            // ⚠️ 不写死图标名 —— 库绑了哪几个由库决定，
-            //    这里把工具栏上每个 span 的 click 都清掉，再按需要重新绑。
-            // ⚠️ 唯独「悬停隐藏」（el-icon-view）保留库的绑定：
-            //    它的切换状态（hidden / peeking）是 initHideMode 的闭包变量，
-            //    外部拿不到，自己重绑反而会坏掉。
+            // 库已给部分按钮绑过 click，先全部解绑再按脚本逻辑重绑，否则会执行两遍。
+            // 唯独 el-icon-view 保留库的绑定（它的状态在 initHideMode 闭包里）。
             $('.waifu-tool span').not('.el-icon-view').off('click');
 
-            // ---------- 按配置显示 / 隐藏工具栏按钮 ----------
-            // key 与 DEFAULT_CONFIG.toolbar 对应
+            // 按配置显示 / 隐藏工具栏按钮
             const TOOLBAR_ICONS = {
                 house:    '.el-icon-house',
                 hitokoto: '.el-icon-chat-dot-round',
