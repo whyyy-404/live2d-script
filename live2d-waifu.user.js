@@ -62,7 +62,6 @@
     const DEFAULT_CONFIG = {
         enabled: true,
         loadDelay: 1000,
-        showLoadingTip: true,
         useBlacklist: true,
         blacklist: ['localhost', '127.0.0.1'],
 
@@ -242,50 +241,6 @@
     // 看板娘样式全部来自库，这里只放库没有的：加载动画、配置面板、赞赏弹窗。
     GM_addStyle(`
         @import url("https://cdn.jsdelivr.net/gh/whyyy-404/live2d-waifu@main/assets/waifu.css");
-
-        /* 加载动画 */
-        .waifu-loading {
-            position: absolute;
-            bottom: 120px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 2;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-        }
-        .waifu-loading svg {
-            width: 60px;
-            height: 60px;
-        }
-        .waifu-loading svg polyline {
-            fill: none;
-            stroke-width: 3;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-        .waifu-loading svg polyline#back {
-            fill: none;
-            stroke: #ff4d5033;
-        }
-        .waifu-loading svg polyline#front {
-            fill: none;
-            stroke: #ff4d4f;
-            stroke-dasharray: 48, 144;
-            stroke-dashoffset: 192;
-            animation: dash_682 1.4s linear infinite;
-        }
-        @keyframes dash_682 {
-            72.5% { opacity: 0; }
-            to { stroke-dashoffset: 0; }
-        }
-        .waifu-loading-text {
-            font-size: 12px;
-            color: #ff4d4f;
-            font-weight: bold;
-            text-shadow: 0 0 5px rgba(255, 77, 79, 0.5);
-        }
 
         @keyframes shake {
             2% { transform: translate(0.5px, -1.5px) rotate(-0.5deg); }
@@ -2109,30 +2064,20 @@
         return provinceData && provinceData.city_code ? provinceData : null;
     }
 
-    // ========== Live2D 模型切换功能 ==========
+    // ========== 模型切换 ==========
     /**
-     * 换角色。
-     *
-     * 真正的切换逻辑在库的 loadOtherModel 里（请求静态 API、恢复该角色的皮肤）。
-     * 这里只做一件库不做的事：把新角色同步进 config，让面板能显示当前是哪个。
+     * 换角色。切换逻辑在库的 loadOtherModel 里，
+     * 这里通过它的回调把新角色同步进 config，供面板显示。
      */
     function loadOtherModel() {
         if (typeof window.loadOtherModel !== 'function') {
             console.error('[Live2D] 库的 loadOtherModel 不可用');
             return;
         }
-
-        window.loadOtherModel();
-
-        // 延迟一下再同步 —— 库的 ajax 回调里才会更新 modelId，
-        // 这里读回库记录的最新值。
-        setTimeout(function () {
-            const cur = parseInt(window.storageGet('modelId'), 10);
-            if (!isNaN(cur) && cur > 0 && cur !== config.waifu.modelId) {
-                config.waifu.modelId = cur;
-                saveConfig();
-            }
-        }, 800);
+        window.loadOtherModel(function (newId) {
+            config.waifu.modelId = newId;
+            saveConfig();
+        });
     }
 
     /**
@@ -2379,20 +2324,8 @@
     function init() {
         console.log('[Live2D] 开始初始化...');
 
-        // 加载动画 SVG
-        const loadingSvg = config.showLoadingTip ? `
-            <div class="waifu-loading">
-                <svg viewBox="0 0 44 44">
-                    <polyline id="back" points="1 6 4 6 6 11 10 11 12 6 15 6 18 6 20 11 24 11 27 6 30 6 33 6 35 11 39 11 41 6 44 6"></polyline>
-                    <polyline id="front" points="1 6 4 6 6 11 10 11 12 6 15 6 18 6 20 11 24 11 27 6 30 6 33 6 35 11 39 11 41 6 44 6"></polyline>
-                </svg>
-                <div class="waifu-loading-text">加载中...</div>
-            </div>
-        ` : '';
-
         const waifuHtml = `
             <div class="waifu">
-                ${loadingSvg}
                 <div class="waifu-tips"></div>
                 <canvas id="live2d" class="live2d" width="280" height="250"></canvas>
                 <div class="waifu-tool">
@@ -2420,13 +2353,13 @@
 
         if (typeof initModel !== 'function') {
             console.error('[Live2D] initModel 函数未定义');
-            $('.waifu-loading').html('<div style="color:#ff4d4f;font-size:12px;">加载失败</div>');
+            $('.waifu').remove();
             return;
         }
 
         if (typeof live2d_settings === 'undefined') {
             console.error('[Live2D] live2d_settings 未定义');
-            $('.waifu-loading').html('<div style="color:#ff4d4f;font-size:12px;">加载失败</div>');
+            $('.waifu').remove();
             return;
         }
 
@@ -2457,7 +2390,7 @@
             })
             .catch(function (e) {
                 console.error('[Live2D] models.json 加载失败:', e);
-                $('.waifu-loading').html('<div style="color:#ff4d4f;font-size:12px;">模型数据加载失败</div>');
+                $('.waifu').remove();
             });
 
         /** 模型数据就绪后再启动引擎 */
@@ -2510,9 +2443,6 @@
         }, 100);
 
         setTimeout(() => {
-            $('.waifu-loading').fadeOut(300, function() {
-                $(this).remove();
-            });
             console.log('[Live2D] 看板娘加载完成！');
 
             // 根据配置设置初始停靠位置
