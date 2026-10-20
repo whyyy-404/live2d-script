@@ -2517,148 +2517,6 @@
         //    表现为台词闪烁、或者重要消息被顶掉。现在不要这段。
     }
 
-    // ========== 拖拽停靠功能（修复版） ==========
-    function initDragDocking() {
-        setTimeout(() => {
-            const $waifu = $('.waifu');
-            const $tool = $('.waifu-tool');
-            if (!$waifu.length) return;
-            let isDragging = false;
-            let startX = 0;
-            let startWaifuLeft = 0;
-
-            // 监听鼠标按下（开始拖拽）
-            $waifu.on('mousedown', function(e) {
-                const rect = this.getBoundingClientRect();
-                const mouseX = e.clientX - rect.left;
-                // 排除工具栏区域（右侧60px），仅本体可拖拽
-                if (mouseX > rect.width - 60) return;
-
-                isDragging = true;
-                startX = e.clientX;
-
-                // 获取看板娘当前的实际位置
-                const rect2 = this.getBoundingClientRect();
-                startWaifuLeft = rect2.left;
-
-                // 拖拽开始时立即切换到left定位，强制清除right定位
-                $waifu[0].style.setProperty('right', 'auto', 'important');
-                $waifu[0].style.setProperty('left', startWaifuLeft + 'px', 'important');
-                $waifu[0].style.setProperty('transition', 'none', 'important');
-
-                console.log('开始拖拽，初始位置:', startWaifuLeft);
-                e.preventDefault();
-            });
-
-            // 监听鼠标移动（拖拽过程，实时更新位置）
-            $(document).on('mousemove', function(e) {
-                if (!isDragging) return;
-                const moveX = e.clientX - startX;
-                let newLeft = startWaifuLeft + moveX;
-                const currentPageWidth = $(window).width();
-                const currentWaifuWidth = $waifu.outerWidth();
-                newLeft = Math.max(0, Math.min(newLeft, currentPageWidth - currentWaifuWidth));
-                $waifu[0].style.setProperty('left', newLeft + 'px', 'important');
-                $waifu[0].style.setProperty('right', 'auto', 'important');
-            });
-
-            // 监听鼠标松开（结束拖拽，执行平滑停靠动画）
-            $(document).on('mouseup', function() {
-                if (!isDragging) return;
-                isDragging = false;
-
-                const currentLeft = parseFloat($waifu.css('left'));
-                const currentPageWidth = $(window).width();
-                const currentWaifuWidth = $waifu.outerWidth();
-
-                console.log('拖拽结束，当前位置:', currentLeft, '页面宽度:', currentPageWidth, '看板娘宽度:', currentWaifuWidth);
-
-                if (currentLeft + currentWaifuWidth/2 < currentPageWidth/2) {
-                    // 停靠左侧 - 使用平滑动画
-                    console.log('判定停靠到左边，目标位置: 0');
-
-                    const startLeft = currentLeft;
-                    const targetLeft = 0;
-                    const duration = 1000;
-                    const startTime = performance.now();
-
-                    function animateToLeft(currentTime) {
-                        const elapsed = currentTime - startTime;
-                        const progress = Math.min(elapsed / duration, 1);
-
-                        // 使用缓动函数
-                        const easeProgress = 1 - Math.pow(1 - progress, 3);
-                        const newLeft = startLeft + (targetLeft - startLeft) * easeProgress;
-
-                        // 强制设置位置
-                        $waifu[0].style.setProperty('left', newLeft + 'px', 'important');
-                        $waifu[0].style.setProperty('right', 'auto', 'important');
-
-                        if (progress < 1) {
-                            requestAnimationFrame(animateToLeft);
-                        } else {
-                            // 动画完成，最终确保位置正确
-                            $waifu[0].style.setProperty('left', '0px', 'important');
-                            $waifu[0].style.setProperty('right', 'auto', 'important');
-                            console.log('左侧停靠完成，最终位置:', $waifu.css('left'));
-                        }
-                    }
-
-                    requestAnimationFrame(animateToLeft);
-                    $tool.addClass('left-side').css({ left: '10px', right: 'auto' });
-
-                    // 保存停靠位置到配置
-                    config.waifu.dockSide = 'left';
-                    saveConfig();
-
-                } else {
-                    // 停靠右侧 - 使用平滑动画
-                    console.log('判定停靠到右边');
-
-                    const startLeft = currentLeft;
-                    const targetLeft = currentPageWidth - currentWaifuWidth;
-                    const duration = 1000;
-                    const startTime = performance.now();
-
-                    function animateToRight(currentTime) {
-                        const elapsed = currentTime - startTime;
-                        const progress = Math.min(elapsed / duration, 1);
-
-                        // 使用缓动函数
-                        const easeProgress = 1 - Math.pow(1 - progress, 3);
-                        const newLeft = startLeft + (targetLeft - startLeft) * easeProgress;
-
-                        // 强制设置位置
-                        $waifu[0].style.setProperty('left', newLeft + 'px', 'important');
-                        $waifu[0].style.setProperty('right', 'auto', 'important');
-
-                        if (progress < 1) {
-                            requestAnimationFrame(animateToRight);
-                        } else {
-                            // 动画完成后，改用right定位
-                            $waifu[0].style.setProperty('left', 'auto', 'important');
-                            $waifu[0].style.setProperty('right', '0px', 'important');
-                            console.log('右侧停靠完成，最终位置:', $waifu.css('right'));
-                        }
-                    }
-
-                    requestAnimationFrame(animateToRight);
-                    $tool.removeClass('left-side').css({ right: '10px', left: 'auto' });
-
-                    // 保存停靠位置到配置
-                    config.waifu.dockSide = 'right';
-                    saveConfig();
-                }
-            });
-
-            // 鼠标离开页面时强制结束拖拽，避免卡死
-            $(document).on('mouseleave', function() {
-                if (isDragging) {
-                    isDragging = false;
-                }
-            });
-        }, 2000);
-    }
 
     // ========== 初始化 ==========
     function init() {
@@ -2770,9 +2628,15 @@
         live2d_settings['modelId'] = config.waifu.modelId;
         live2d_settings['modelTexturesId'] = startTexturesId;
         live2d_settings['waifuEdgeSide'] = config.waifu.dockSide === 'left' ? 'left:0' : 'right:0';
-        live2d_settings['waifuDraggable'] = 'disable';
+        // 拖拽交给库：库里实现了 Pointer Events 拖拽 + 边缘吸附 + 位置记忆 + 缩放自适应，
+        // 比脚本自己那份更完善（脚本的 initDragDocking 已不再绑定）。
+        live2d_settings['waifuDraggable'] = 'axis-x';
+        live2d_settings['waifuDraggableSnap'] = 1000;
+        live2d_settings['waifuMinWidth'] = '768px';
         live2d_settings['modelStorage'] = true;
         live2d_settings['modelAPI'] = MODEL_API + '/';
+        live2d_settings['tipsMessage'] = TIPS_JSON;
+        live2d_settings['aboutPageUrl'] = 'https://github.com/whyyy-404';
 
         console.log('[Live2D] 调用 initModel...');
         initModel(TIPS_JSON);
@@ -2998,8 +2862,7 @@
             todoSystem = new TodoReminderSystem();
             todoSystem.init();
 
-            // 初始化拖拽停靠功能
-            initDragDocking();
+            // 拖拽由库负责（waifuDraggable = 'axis-x'），这里不再调用 initDragDocking()
 
             // 赞赏面板事件
             $('#donateClose').click(function() {
