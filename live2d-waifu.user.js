@@ -239,91 +239,15 @@
     document.head.appendChild(elementUILink);
 
     // ========== 样式 ==========
+    // ========== 样式 ==========
+    // ⚠️ 看板娘本身的样式（.waifu / .waifu-tips / .waifu-tool）由库提供（waifu.css），
+    //    这里不再重写 —— 重复定义会和库冲突，尤其是 transform：
+    //    库的拖拽用 transform: translate3d()，如果这里也写 transform: translateY(3px)，
+    //    两者会互相覆盖，拖拽明显卡顿。
+    //    这里只保留库没有的东西：加载动画、面板、赞赏弹窗。
     GM_addStyle(`
-        /* 看板娘基础样式 */
-        .waifu {
-            position: fixed;
-            bottom: 0;
-            right: 0;
-            z-index: 999999 !important;
-            font-size: 0;
-            transform: translateY(3px);
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out, transform 0.3s ease-in-out;
-        }
-        .waifu.loaded { opacity: 1; }
-        .waifu:hover { transform: translateY(0); }
-
-        .waifu-tips {
-            opacity: 0;
-            margin: -50px 20px;
-            padding: 8px 14px;
-            border: 1px solid rgb(211, 211, 211);
-            border-radius: 12px;
-            background-color: rgb(255, 255, 255);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            position: absolute;
-            min-width: 80px !important;
-            max-width: 250px !important;
-            width: fit-content !important;
-            height: auto !important;
-            font-size: 14px;
-            font-weight: 600;
-            line-height: 1.4;
-            color: rgb(0, 0, 0);
-            transition: opacity 0.3s ease-in-out, transform 0.3s;
-            word-wrap: break-word;
-            white-space: normal;
-            display: inline-block;
-            text-align: center;
-        }
-
-        /* 对话框小三角箭头 - 相对于看板娘固定位置 */
-        .waifu-tips::before {
-            content: "";
-            position: absolute;
-            width: 16px;
-            height: 16px;
-            bottom: -8px;
-            right: 30px;
-            transform: rotate(45deg);
-            background-color: rgb(255, 255, 255);
-            border-right: 1px solid rgb(211, 211, 211);
-            border-bottom: 1px solid rgb(211, 211, 211);
-        }
-
-        /* 显示动画 */
-        .waifu-tips.active {
-            opacity: 1;
-            transform: translateY(-5px);
-        }
-
-        .waifu-tool {
-            display: none;
-            color: #aaa;
-            top: 5px;
-            right: 10px;
-            position: absolute;
-            font-size: 14px;
-        }
-        .waifu:hover .waifu-tool { display: block; }
-        .waifu-tool span {
-            display: block;
-            cursor: pointer;
-            color: #5b6c7d;
-            transition: 0.2s;
-            margin: 5px 0;
-            line-height: 20px;
-        }
-        .waifu-tool span:hover { color: #34495e; }
-
-        /* 左侧工具栏样式 */
-        .waifu-tool.left-side {
-            left: 10px;
-            right: auto;
-        }
-
-        .waifu #live2d { position: relative; }
+        /* 显式加载库的样式，确保看板娘外观来自库 */
+        @import url("https://cdn.jsdelivr.net/gh/whyyy-404/live2d-waifu@main/assets/waifu.css");
 
         /* 加载动画 */
         .waifu-loading {
@@ -2655,7 +2579,6 @@
             $('.waifu-loading').fadeOut(300, function() {
                 $(this).remove();
             });
-            $('.waifu').addClass('loaded');
             console.log('[Live2D] 看板娘加载完成！');
 
             // 根据配置设置初始停靠位置
