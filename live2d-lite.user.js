@@ -10,9 +10,9 @@
 // @grant        GM_setValue
 // @connect      cdn.jsdelivr.net
 // @require      https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js
-// @require      https://cdn.jsdelivr.net/gh/whyyy-404/live2d-waifu@main/assets/live2d.js
-// @require      https://cdn.jsdelivr.net/gh/whyyy-404/live2d-waifu@main/assets/live2d-static-api.js
-// @require      https://cdn.jsdelivr.net/gh/whyyy-404/live2d-waifu@main/assets/waifu-tips.js
+// @require      https://cdn.jsdelivr.net/gh/whyyy-404/live2d-waifu@v2.0.0/assets/live2d.js
+// @require      https://cdn.jsdelivr.net/gh/whyyy-404/live2d-waifu@v2.0.0/assets/live2d-static-api.js
+// @require      https://cdn.jsdelivr.net/gh/whyyy-404/live2d-waifu@v2.0.0/assets/waifu-tips.js
 // @license      GPL-2.0
 // @run-at       document-end
 // @icon         https://cdn.jsdelivr.net/gh/whyyy-404/live2d-models@main/model/Potion-Maker/Pio/textures/default-costume.png
@@ -21,7 +21,7 @@
 (function () {
     'use strict';
 
-    var LIB = 'https://cdn.jsdelivr.net/gh/whyyy-404/live2d-waifu@main';
+    var LIB = 'https://cdn.jsdelivr.net/gh/whyyy-404/live2d-waifu@v2.0.0';
     var ASSETS = LIB + '/assets';
     var MODELS = 'https://cdn.jsdelivr.net/gh/whyyy-404/live2d-models@main';
 

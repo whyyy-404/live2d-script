@@ -53,15 +53,19 @@ head('=== ② 元数据 ===');
     /\/\/ @version\s+[\d.]+/.test(src) ? ok(f + ' 有 @version') : bad(f + ' 缺少 @version');
     /\/\/ @match\s+\*:\/\/\*\/\*/.test(src) ? ok(f + ' 匹配全部网站') : bad(f + ' @match 不完整');
 
-    // 库引用必须是 @main
+    // 库引用必须锁定在 tag 上（不用 @main，避免库改动影响已发布的脚本）
     const libReqs = (src.match(/@require\s+\S*live2d-waifu@\S*\/assets\//g) || []);
     libReqs.length === 3
         ? ok(f + ' 通过 @require 引用库（3 个文件）')
         : bad(f + ' 库引用数量不对: ' + libReqs.length);
 
-    libReqs.every(function (u) { return u.indexOf('@main') !== -1; })
-        ? ok(f + ' 库引用使用 @main')
-        : bad(f + ' 库引用没有全部使用 @main');
+    libReqs.every(function (u) { return /live2d-waifu@v[\d.]+/.test(u); })
+        ? ok(f + ' 库引用锁定在 tag 版本')
+        : bad(f + ' 库引用没有锁定到 tag（仍在用 @main 或 hash）');
+
+    libReqs.every(function (u) { return u.indexOf('@main') === -1; })
+        ? ok(f + ' 库引用未使用 @main')
+        : bad(f + ' 库引用仍在用 @main');
 });
 
 /* ========================================================================== */

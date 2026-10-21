@@ -17,9 +17,9 @@
 // @connect      v.api.aa1.cn
 // @connect      v1.hitokoto.cn
 // @require      https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js
-// @require      https://cdn.jsdelivr.net/gh/whyyy-404/live2d-waifu@main/assets/live2d.js
-// @require      https://cdn.jsdelivr.net/gh/whyyy-404/live2d-waifu@main/assets/live2d-static-api.js
-// @require      https://cdn.jsdelivr.net/gh/whyyy-404/live2d-waifu@main/assets/waifu-tips.js
+// @require      https://cdn.jsdelivr.net/gh/whyyy-404/live2d-waifu@v2.0.0/assets/live2d.js
+// @require      https://cdn.jsdelivr.net/gh/whyyy-404/live2d-waifu@v2.0.0/assets/live2d-static-api.js
+// @require      https://cdn.jsdelivr.net/gh/whyyy-404/live2d-waifu@v2.0.0/assets/waifu-tips.js
 // @license      GPL-2.0
 // @run-at       document-end
 // @icon         https://cdn.jsdelivr.net/gh/whyyy-404/live2d-models@main/model/Potion-Maker/Pio/textures/default-costume.png
@@ -50,9 +50,9 @@
     'use strict';
 
     // ========== 自建资源地址 ==========
-    // 库版本用 commit hash 锁定，避开 jsDelivr 对 @main 的长缓存。
-    // 库更新后把 LIB_VER 换成新的 hash 即可。
-    const LIB_VER = 'main';
+    // 库锁定在 v2.0.0 这个 tag 上：库之后再怎么改，本脚本都不受影响。
+    // 要升级时把 LIB_VER 换成新 tag，并同步改上面三行 @require。
+    const LIB_VER = 'v2.0.0';
     const LIB_BASE = 'https://cdn.jsdelivr.net/gh/whyyy-404/live2d-waifu@' + LIB_VER;
     const MODEL_BASE = 'https://cdn.jsdelivr.net/gh/whyyy-404/live2d-models@main';
     const MODEL_API = MODEL_BASE + '/api';   // 静态 API 的伪装前缀，由 live2d-static-api.js 拦截
@@ -240,7 +240,7 @@
     // ========== 样式 ==========
     // 看板娘样式全部来自库，这里只放库没有的：加载动画、配置面板、赞赏弹窗。
     GM_addStyle(`
-        @import url("https://cdn.jsdelivr.net/gh/whyyy-404/live2d-waifu@main/assets/waifu.css");
+        @import url("https://cdn.jsdelivr.net/gh/whyyy-404/live2d-waifu@v2.0.0/assets/waifu.css");
 
         @keyframes shake {
             2% { transform: translate(0.5px, -1.5px) rotate(-0.5deg); }
