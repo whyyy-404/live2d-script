@@ -24,6 +24,8 @@
     var LIB = 'https://cdn.jsdelivr.net/gh/whyyy-404/live2d-waifu@v2.0.0';
     var ASSETS = LIB + '/assets';
     var MODELS = 'https://cdn.jsdelivr.net/gh/whyyy-404/live2d-models@main';
+    // 台词库跟 @main：它是内容不是代码，加节日台词后推送即可生效，不用发版
+    var TIPS = 'https://cdn.jsdelivr.net/gh/whyyy-404/live2d-waifu@main/assets/waifu-tips.json';
 
     var log = function () {
         if (window.console) console.log.apply(console, ['[看板娘]'].concat([].slice.call(arguments)));
@@ -117,7 +119,7 @@
                 s['aboutPageUrl'] = 'https://github.com/whyyy-404';
 
                 log('启动中…');
-                window.initModel(ASSETS + '/waifu-tips.json');
+                window.initModel(TIPS);
             })
             .catch(function (e) {
                 console.error('[看板娘] models.json 加载失败：', e);

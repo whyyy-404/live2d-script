@@ -50,13 +50,14 @@
     'use strict';
 
     // ========== 自建资源地址 ==========
-    // 库锁定在 v2.0.0 这个 tag 上：库之后再怎么改，本脚本都不受影响。
+    // 库代码锁定在 v2.0.0 这个 tag 上：库之后再怎么改，本脚本都不受影响。
     // 要升级时把 LIB_VER 换成新 tag，并同步改上面三行 @require。
     const LIB_VER = 'v2.0.0';
     const LIB_BASE = 'https://cdn.jsdelivr.net/gh/whyyy-404/live2d-waifu@' + LIB_VER;
     const MODEL_BASE = 'https://cdn.jsdelivr.net/gh/whyyy-404/live2d-models@main';
     const MODEL_API = MODEL_BASE + '/api';   // 静态 API 的伪装前缀，由 live2d-static-api.js 拦截
-    const TIPS_JSON = LIB_BASE + '/assets/waifu-tips.json';
+    // 台词库跟 @main：它是内容不是代码，加节日台词后推送即可生效，不用发版
+    const TIPS_JSON = 'https://cdn.jsdelivr.net/gh/whyyy-404/live2d-waifu@main/assets/waifu-tips.json';
 
     // ========== 默认配置 ==========
     const DEFAULT_CONFIG = {

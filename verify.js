@@ -66,6 +66,11 @@ head('=== ② 元数据 ===');
     libReqs.every(function (u) { return u.indexOf('@main') === -1; })
         ? ok(f + ' 库引用未使用 @main')
         : bad(f + ' 库引用仍在用 @main');
+
+    // 台词库反过来：应该跟 @main，这样加节日台词不用发版
+    /live2d-waifu@main\/assets\/waifu-tips\.json/.test(src)
+        ? ok(f + ' 台词库跟随 @main')
+        : bad(f + ' 台词库没有跟随 @main（加节日台词会需要发新版）');
 });
 
 /* ========================================================================== */
